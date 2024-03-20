@@ -187,7 +187,7 @@ function Core.SavePlayer(xPlayer, cb)
         json.encode(xPlayer.getMeta()),
         xPlayer.identifier,
     }
-
+    exports['codem-inventory']:SaveInventory(xPlayer.source)
     MySQL.prepare(
         "UPDATE `users` SET `accounts` = ?, `job` = ?, `job_grade` = ?, `group` = ?, `position` = ?, `inventory` = ?, `loadout` = ?, `metadata` = ? WHERE `identifier` = ?",
         parameters,
@@ -225,6 +225,7 @@ function Core.SavePlayers(cb)
             json.encode(xPlayer.getMeta()),
             xPlayer.identifier,
         }
+        exports['codem-inventory']:SaveInventory(xPlayer.source)
     end
 
     MySQL.prepare(

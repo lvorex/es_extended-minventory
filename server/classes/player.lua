@@ -100,7 +100,13 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 
     ---@return number
     function self.getMoney()
-        return self.getAccount("money").money
+        local cashItem = exports['codem-inventory']:CheckCashItems()
+        if not cashItem then
+            return self.getAccount("money").money
+        else
+            local moneyAmount = exports['codem-inventory']:GetItemsTotalAmount(self.source, 'cash')
+            return moneyAmount
+        end
     end
 
     ---@param money number
@@ -182,19 +188,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
     ---@param minimal boolean
     ---@return table
     function self.getInventory(minimal)
-        if minimal then
-            local minimalInventory = {}
-
-            for _, v in ipairs(self.inventory) do
-                if v.count > 0 then
-                    minimalInventory[v.name] = v.count
-                end
-            end
-
-            return minimalInventory
-        end
-
-        return self.inventory
+        return exports["codem-inventory"]:GetInventory(self.identifier, self.source)
     end
 
     ---@return table
@@ -265,6 +259,12 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 
                 self.triggerEvent("esx:setAccountMoney", account)
                 _TriggerEvent("esx:setAccountMoney", self.source, accountName, money, reason)
+                if accountName == "money" then
+                    local cashItem = exports['codem-inventory']:CheckCashItems()
+                    if cashItem then
+                        exports['codem-inventory']:SetInventoryItems(self.source, accountName, money)
+                    end
+                end
             else
                 print(("[^1ERROR^7] Tried To Set Invalid Account ^5%s^0 For Player ^5%s^0!"):format(accountName, self.playerId))
             end
@@ -291,6 +291,12 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 
                 self.triggerEvent("esx:setAccountMoney", account)
                 _TriggerEvent("esx:addAccountMoney", self.source, accountName, money, reason)
+                if accountName == 'money' then
+                    local cashItem = exports['codem-inventory']:CheckCashItems()
+                    if cashItem then
+                        exports['codem-inventory']:AddItem(self.source, accountName, money)
+                    end
+                end
             else
                 print(("[^1ERROR^7] Tried To Set Add To Invalid Account ^5%s^0 For Player ^5%s^0!"):format(accountName, self.playerId))
             end
@@ -322,6 +328,12 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 
                 self.triggerEvent("esx:setAccountMoney", account)
                 _TriggerEvent("esx:removeAccountMoney", self.source, accountName, money, reason)
+                if accountName == 'money' then
+                    local cashItem = exports['codem-inventory']:CheckCashItems()
+                    if cashItem then
+                        exports['codem-inventory']:RemoveItem(self.source, accountName, money)
+                    end
+                end
             else
                 print(("[^1ERROR^7] Tried To Set Add To Invalid Account ^5%s^0 For Player ^5%s^0!"):format(accountName, self.playerId))
             end
@@ -333,52 +345,21 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
     ---@param itemName string
     ---@return table | nil
     function self.getInventoryItem(itemName)
-        for _, v in ipairs(self.inventory) do
-            if v.name == itemName then
-                return v
-            end
-        end
-        return nil
+        return exports["codem-inventory"]:GetItemByName(self.source, itemName)
     end
 
     ---@param itemName string
     ---@param count number
     ---@return void
     function self.addInventoryItem(itemName, count)
-        local item = self.getInventoryItem(itemName)
-
-        if item then
-            count = ESX.Math.Round(count)
-            item.count = item.count + count
-            self.weight = self.weight + (item.weight * count)
-
-            _TriggerEvent("esx:onAddInventoryItem", self.source, item.name, item.count)
-            self.triggerEvent("esx:addInventoryItem", item.name, item.count)
-        end
+        return exports["codem-inventory"]:AddItem(self.source, itemName, count)
     end
 
     ---@param itemName string
     ---@param count number
     ---@return void
     function self.removeInventoryItem(itemName, count)
-        local item = self.getInventoryItem(itemName)
-
-        if item then
-            count = ESX.Math.Round(count)
-            if count > 0 then
-                local newCount = item.count - count
-
-                if newCount >= 0 then
-                    item.count = newCount
-                    self.weight = self.weight - (item.weight * count)
-
-                    _TriggerEvent("esx:onRemoveInventoryItem", self.source, item.name, item.count)
-                    self.triggerEvent("esx:removeInventoryItem", item.name, item.count)
-                end
-            else
-                print(("[^1ERROR^7] Player ID:^5%s Tried remove a Invalid count -> %s of %s"):format(self.playerId, count, itemName))
-            end
-        end
+        return exports["codem-inventory"]:RemoveItem(self.source, itemName, count)
     end
 
     ---@param itemName string

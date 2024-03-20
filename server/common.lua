@@ -46,9 +46,10 @@ end
 MySQL.ready(function()
     Core.DatabaseConnected = true
     if not Config.OxInventory then
-        local items = MySQL.query.await("SELECT * FROM items")
-        for _, v in ipairs(items) do
-            ESX.Items[v.name] = { label = v.label, weight = v.weight, rare = v.rare, canRemove = v.can_remove }
+        ESX.Items = exports["codem-inventory"]:GetItemList()
+        while not next(ESX.Items) do
+            ESX.Items = exports["codem-inventory"]:GetItemList()
+            Wait(0)
         end
     else
         TriggerEvent("__cfx_export_ox_inventory_Items", function(ref)

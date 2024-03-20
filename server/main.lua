@@ -276,6 +276,8 @@ function loadESXPlayer(identifier, playerId, isNew)
     end
 
     TriggerEvent("esx:playerLoaded", playerId, xPlayer, isNew)
+    local inventory = exports['codem-inventory']:LoadInventory(playerId)
+    xPlayer.set('inv', inventory)
     userData.money = xPlayer.getMoney()
     userData.maxWeight = xPlayer.getMaxWeight()
     xPlayer.triggerEvent("esx:playerLoaded", userData, isNew, userData.skin)
